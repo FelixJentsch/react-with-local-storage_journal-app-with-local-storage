@@ -5,6 +5,7 @@ import EntryForm from "./components/EntryForm";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { uid } from "uid";
+import useLocalStorageState from "use-local-storage-state";
 
 const initialEntries = [
   {
@@ -37,14 +38,22 @@ const initialEntries = [
 ];
 
 function App() {
-  const [entries, setEntries] = useState(initialEntries);
-  const [filter, setFilter] = useState("all"); // "all" or "favorites"
+  const [entries, setEntries] = useLocalStorageState(
+    "journalEntries",
+    initialEntries
+  );
+
+  const [filter, setFilter] = useLocalStorageState("filter", "all");
 
   function handleAddEntry(newEntry) {
     const date = new Date().toLocaleDateString("en-us", {
       dateStyle: "medium",
     });
-    setEntries([{ id: uid(), date, ...newEntry }, ...entries]);
+    /*  setEntries([{ id: uid(), date, ...newEntry }, ...entries]); */
+    setEntries((prevEntries) => [
+      { id: uid(), date, ...newEntry },
+      ...(Array.isArray(prevEntries) ? prevEntries : []),
+    ]);
   }
 
   function handleToggleFavorite(id) {
@@ -62,8 +71,16 @@ function App() {
   function handleShowAllEntries() {
     setFilter("all");
   }
+  const filteredEntries =
+    entries && filter === "favorites"
+      ? entries.filter((entry) => entry.isFavorite)
+      : entries;
 
-  const favoriteEntries = entries.filter((entry) => entry.isFavorite);
+  const allEntriesCount = entries ? entries.length : 0;
+
+  const favoriteEntriesCount = entries
+    ? entries.filter((entry) => entry.isFavorite).length
+    : 0;
 
   return (
     <div className="app">
@@ -71,10 +88,10 @@ function App() {
       <main className="app__main">
         <EntryForm onAddEntry={handleAddEntry} />
         <EntriesSection
-          entries={filter === "favorites" ? favoriteEntries : entries}
+          entries={filteredEntries}
           filter={filter}
-          allEntriesCount={entries.length}
-          favoriteEntriesCount={favoriteEntries.length}
+          allEntriesCount={allEntriesCount}
+          favoriteEntriesCount={favoriteEntriesCount}
           onToggleFavorite={handleToggleFavorite}
           onShowAllEntries={handleShowAllEntries}
           onShowFavoriteEntries={handleShowFavoriteEntries}

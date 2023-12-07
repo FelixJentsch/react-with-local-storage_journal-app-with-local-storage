@@ -7,7 +7,7 @@ import Badge from "../Badge";
 import { Fragment } from "react";
 
 export default function EntriesSection({
-  entries,
+  entries = [],
   onToggleFavorite,
   filter,
   allEntriesCount,
